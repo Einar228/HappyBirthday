@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Birthday Slideshow</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@1,700;1,900&family=Reenie+Beanie&family=Special+Elite&display=swap">
+<style>
+/* Layout: three full-screen slides that only move with the Next button, the arrow buttons or the arrow keys. Cakes rise and confetti pops on every slide; tap a cake for more confetti, blow out the candles on slide 2, and type your own letter on slide 3. */
+:root {
+  --bg: #1b0b3e;
+  --night: #12062c;
+  --ink: #f4ecff;
+  --soft: #dccaf7;
+  --orchid: #e08fe0;
+  --gold: #f2cf7e;
+  --lilac: #b79cf5;
+  --violet: #8f5cf0;
+  --paper: #d6c4f6;
+  --paper-ink: #2a1163;
+  --paper-line: rgba(84, 48, 170, 0.3);
+  --margin: rgba(214, 84, 190, 0.55);
+  --bar: clamp(96px, 14vmin, 120px);
+  --display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --mono: 'Special Elite', 'Courier New', Courier, monospace;
+  --hand: 'Reenie Beanie', 'Segoe Print', 'Bradley Hand', cursive;
+  color-scheme: dark;
+}
+
+html, body { height: 100%; margin: 0; }
+* { box-sizing: border-box; }
+
+body {
+  position: relative;
+  background-color: var(--bg);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 16px;
+  line-height: 1.5;
+  overflow: hidden;
+}
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+  opacity: 0.26;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.deck { position: relative; height: 100%; overflow: hidden; }
+
+/* Slides */
+.slide {
+  position: absolute; inset: 0;
+  display: flex;
+  padding: clamp(20px, 5vmin, 56px) clamp(20px, 6vw, 80px) var(--bar);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.6s ease, transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s linear 0.7s;
+  z-index: 1;
+}
+.slide.on { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; z-index: 2; }
+.slide.before { transform: translateX(-7%); }
+.slide.after { transform: translateX(7%); }
+.s1 { background: linear-gradient(165deg, #3b1b86 0%, #1f0d45 55%, #150733 100%); }
+.s2 { background: linear-gradient(160deg, #6b2fc9 0%, #4a1fa0 55%, #2a1160 100%); }
+.s3 { background: linear-gradient(165deg, #2f1470 0%, #1f0d45 60%, #5f3ab1 100%); overflow-x: hidden; overflow-y: auto; }
+
+.wrap { position: relative; z-index: 1; margin: auto; width: 100%; }
+
+/* Confetti that pops in when a slide opens */
+.confetti { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.piece {
+  position: absolute;
+  opacity: 0;
+  scale: 0;
+  rotate: var(--r, 0deg);
+}
+.piece.dot { border-radius: 50%; }
+.piece.dia { clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+.slide.on .piece {
+  animation:
+    pop 0.55s cubic-bezier(0.2, 1.7, 0.4, 1) var(--d, 0.4s) both,
+    drift 5s ease-in-out calc(var(--d, 0.4s) + 0.6s) infinite alternate;
+}
+@keyframes pop { from { opacity: 0; scale: 0; } to { opacity: 1; scale: 1; } }
+@keyframes drift { from { translate: 0 0; } to { translate: 0 14px; } }
+
+/* Cakes */
+.cake-btn {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.2s ease;
+}
+.cake-btn:hover { transform: translateY(-6px); }
+.cake-btn:active { transform: translateY(0) scale(0.97); }
+.cake-btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 6px; border-radius: 16px; }
+.cake-btn svg { display: block; width: 100%; height: auto; overflow: visible; filter: drop-shadow(0 18px 24px rgba(8, 2, 24, 0.5)); }
+.rise { opacity: 0; }
+.slide.on .rise { animation: rise 0.85s cubic-bezier(0.2, 1.3, 0.4, 1) var(--d, 0s) both; }
+@keyframes rise { from { opacity: 0; translate: 0 60px; scale: 0.6; } to { opacity: 1; translate: 0 0; scale: 1; } }
+
+.flame { fill: var(--gold); stroke: var(--night); stroke-width: 3; transform-box: fill-box; transform-origin: 50% 100%; animation: flick 1.4s ease-in-out infinite; transition: opacity 0.25s; }
+.flame:nth-child(2) { animation-delay: -0.5s; }
+.flame:nth-child(3) { animation-delay: -0.9s; }
+@keyframes flick { 0%, 100% { transform: scale(1) rotate(-3deg); } 40% { transform: scale(0.9, 1.12) rotate(3deg); } 70% { transform: scale(1.06, 0.95) rotate(-1deg); } }
+.heart { transform-box: fill-box; transform-origin: 50% 80%; animation: beat 1.3s ease-in-out infinite; }
+@keyframes beat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.18); } }
+.smoke circle { fill: var(--ink); opacity: 0; transform-box: fill-box; transform-origin: 50% 50%; }
+.cake-btn.out .flame { opacity: 0; }
+.cake-btn.out .smoke circle { animation: wisp 1.7s ease-out forwards; }
+.cake-btn.out .smoke circle:nth-child(2) { animation-delay: 0.12s; }
+.cake-btn.out .smoke circle:nth-child(3) { animation-delay: 0.24s; }
+@keyframes wisp { from { opacity: 0.85; translate: 0 0; scale: 0.5; } to { opacity: 0; translate: 0 -64px; scale: 1.9; } }
+
+/* Slide 1 */
+.s1 .wrap {
+  max-width: 1400px;
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  align-items: center;
+  gap: clamp(16px, 4vw, 64px);
+}
+.col { display: flex; flex-direction: column; gap: clamp(8px, 2vmin, 24px); min-width: 0; }
+.eyebrow { margin: 0; font-size: clamp(0.8rem, 1.7vmin + 0.4rem, 1.5rem); letter-spacing: 0.3em; text-transform: uppercase; color: var(--orchid); }
+.title {
+  margin: 0;
+  font-family: var(--display);
+  font-style: italic;
+  font-weight: 900;
+  font-size: clamp(2.6rem, min(9vw, 14vh), 9rem);
+  line-height: 0.98;
+  color: var(--ink);
+}
+.tag { margin: 0; font-family: var(--hand); font-size: clamp(2.2rem, min(6vw, 10vh), 5.6rem); line-height: 1.05; color: var(--gold); }
+.s1 .cake-btn { width: min(100%, 56vh); margin-inline: auto; }
+
+/* Slide 2 */
+.s2 .wrap { max-width: 1300px; display: flex; flex-direction: column; align-items: center; gap: clamp(8px, 2vh, 22px); }
+.wish { margin: 0; font-family: var(--display); font-style: italic; font-weight: 900; font-size: clamp(2.6rem, min(11vw, 18vh), 10rem); line-height: 1.05; text-align: center; }
+.wish-line { margin: 0; font-family: var(--mono); font-size: clamp(0.85rem, 1.2vmin + 0.55rem, 1.25rem); letter-spacing: 0.08em; line-height: 1.3; color: var(--soft); text-align: center; min-height: 1.3em; }
+.cakes { display: flex; align-items: flex-end; justify-content: center; gap: clamp(4px, 1.6vw, 40px); margin-top: clamp(8px, 2vh, 28px); width: 100%; }
+.c-xs { width: min(14vw, 24vh); }
+.c-sm { width: min(17vw, 30vh); }
+.c-md { width: min(21vw, 38vh); }
+
+/* Slide 3 */
+.s3 .wrap { max-width: 720px; }
+.shadow { position: relative; z-index: 2; filter: drop-shadow(0 24px 30px rgba(8, 2, 24, 0.6)) drop-shadow(0 2px 3px rgba(8, 2, 24, 0.45)); }
+.sheet { position: relative; transform: rotate(-1deg); animation: settle 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.slide:not(.on) .sheet { animation: none; }
+@keyframes settle { from { opacity: 0; translate: 0 26px; } to { opacity: 1; translate: 0 0; } }
+.paper {
+  position: relative;
+  min-height: 22rem;
+  padding: 3.15rem 2rem 3.4rem 4.2rem;
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(transparent calc(100% - 1px), var(--paper-line) 0),
+    linear-gradient(115deg, rgba(255, 255, 255, 0.45), transparent 42%, rgba(160, 120, 235, 0.3));
+  background-size: 100% 2.1rem, 100% 100%;
+  background-position: 0 3.15rem, 0 0;
+}
+.paper::before { content: ''; position: absolute; top: 0; bottom: 0; left: 3.2rem; width: 1px; background: var(--margin); }
+.paper::after {
+  content: '';
+  position: absolute; left: 0; right: 0; top: 40%; height: 16px;
+  background: linear-gradient(transparent, rgba(70, 30, 140, 0.12) 45%, rgba(255, 255, 255, 0.32) 55%, transparent);
+  pointer-events: none;
+}
+.msg, .signoff { position: relative; z-index: 1; outline: none; cursor: text; overflow-wrap: anywhere; caret-color: #5b3fa8; }
+.msg { margin: 0; min-height: 10rem; font-size: 1.1rem; line-height: 2.1rem; color: var(--paper-ink); white-space: pre-wrap; }
+.signoff { margin: 1.4rem 0 0; font-family: var(--hand); font-size: 3.4rem; line-height: 2.1rem; color: #7a2bb0; text-align: right; white-space: pre-wrap; }
+.msg:empty::before, .signoff:empty::before { content: attr(data-placeholder); opacity: 0.55; }
+.tape { position: absolute; width: 112px; height: 30px; z-index: 3; border-inline: 2px dashed rgba(255, 255, 255, 0.4); box-shadow: 0 2px 4px rgba(8, 2, 24, 0.3); pointer-events: none; }
+.tape.t1 { top: -14px; left: 8%; transform: rotate(-8deg); background: radial-gradient(circle, rgba(255, 255, 255, 0.6) 2px, transparent 2.6px) 0 0 / 12px 12px, rgba(183, 156, 245, 0.85); }
+.tape.t2 { top: -12px; right: 8%; transform: rotate(6deg); background: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.42) 0 5px, transparent 5px 10px), rgba(224, 143, 224, 0.85); }
+.side { display: none; position: absolute; bottom: calc(var(--bar) + 3vh); width: clamp(120px, 13vw, 190px); z-index: 1; }
+.side.l { left: 5vw; }
+.side.r { right: 5vw; }
+
+/* Navigation */
+.nav {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 3vw, 28px);
+  padding: 16px 16px calc(env(safe-area-inset-bottom, 0px) + 20px);
+}
+.arrow, .next {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font: inherit;
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  border: 1.5px solid rgba(244, 236, 255, 0.5);
+  background: rgba(18, 6, 44, 0.45);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  transition: transform 0.15s, background 0.15s, opacity 0.2s;
+}
+.arrow { width: 52px; height: 52px; border-radius: 50%; padding: 0; }
+.next { height: 52px; padding: 0 26px; border-radius: 999px; border-color: transparent; background: linear-gradient(100deg, #8b5cf6, #e0489a); box-shadow: 0 10px 28px rgba(224, 72, 154, 0.35); }
+.arrow:hover, .next:hover { transform: translateY(-2px); }
+.arrow:active, .next:active { transform: translateY(1px); }
+.arrow:focus-visible, .next:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+.arrow:disabled { opacity: 0.3; cursor: default; transform: none; }
+.arrow svg, .next svg { width: 22px; height: 22px; display: block; }
+.dots { display: flex; gap: 10px; }
+.dots i { width: 10px; height: 10px; border-radius: 50%; background: rgba(244, 236, 255, 0.3); transition: background 0.25s, scale 0.25s; }
+.dots i.on { background: var(--gold); scale: 1.3; }
+
+canvas#burst { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 20; }
+
+@media (min-width: 1000px) { .side { display: block; } }
+@media (max-aspect-ratio: 1/1) {
+  .s1 .wrap { grid-template-columns: 1fr; text-align: center; justify-items: center; }
+  .s1 .col { align-items: center; }
+  .title { font-size: clamp(2.6rem, min(14vw, 9vh), 6rem); }
+  .s1 .cake-btn { width: min(64vw, 38vh); }
+}
+@media (max-width: 480px) {
+  .paper { padding: 2.8rem 1.1rem 3rem 3.1rem; background-position: 0 2.8rem, 0 0; }
+  .paper::before { left: 2.3rem; }
+  .signoff { font-size: 3rem; }
+  .tape { width: 84px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .slide, .slide.on { transition: opacity 0.2s; }
+  .slide.before, .slide.after { transform: none; }
+  .piece, .rise, .sheet { opacity: 1; scale: 1; translate: none; animation: none !important; }
+  .flame, .heart { animation: none; }
+}
+</style>
+</head>
+<body>
+<main class="deck" id="deck">
+  <!-- Slide 1 -->
+  <section class="slide s1 on" role="group" aria-roledescription="slide" aria-label="Slide 1 of 3">
+    <div class="confetti" data-confetti="26"></div>
+    <div class="wrap">
+      <div class="col">
+        <p class="eyebrow">A LITTLE SOMETHING FOR YOU</p>
+        <h1 class="title">HAPPY<br>16TH<br>BIRTHDAY<br>JO!</h1>
+        <p class="tag">Make a wish, I'll wait</p>
+      </div>
+      <button type="button" class="cake-btn rise" style="--d:0.2s" data-cake="#8f5cf0,#e08fe0,#b79cf5" data-sixteen="1" data-burst="1" aria-label="Birthday cake with a 16 candle. Tap for confetti."></button>
+    </div>
+  </section>
+
+  <!-- Slide 2 -->
+  <section class="slide s2 after" role="group" aria-roledescription="slide" aria-label="Slide 2 of 3">
+    <div class="confetti" data-confetti="26"></div>
+    <div class="wrap">
+      <h2 class="wish">make a wish</h2>
+      <p class="wish-line" id="wishLine">tap the cakes to blow them out</p>
+      <div class="cakes">
+        <button type="button" class="cake-btn c-xs rise blow" style="--d:0.2s" data-cake="#b79cf5,#f2cf7e,#e08fe0" aria-pressed="false" aria-label="Cake. Tap to blow out the candles."></button>
+        <button type="button" class="cake-btn c-sm rise blow" style="--d:0.35s" data-cake="#e08fe0,#b79cf5,#8f5cf0" aria-pressed="false" aria-label="Pink cake. Tap to blow out the candles."></button>
+        <button type="button" class="cake-btn c-md rise blow" style="--d:0.5s" data-cake="#f2cf7e,#e08fe0,#8f5cf0" aria-pressed="false" aria-label="Gold cake. Tap to blow out the candles."></button>
+        <button type="button" class="cake-btn c-sm rise blow" style="--d:0.65s" data-cake="#b79cf5,#8f5cf0,#e08fe0" aria-pressed="false" aria-label="Lilac cake. Tap to blow out the candles."></button>
+        <button type="button" class="cake-btn c-xs rise blow" style="--d:0.8s" data-cake="#8f5cf0,#e08fe0,#f2cf7e" aria-pressed="false" aria-label="Violet cake. Tap to blow out the candles."></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 3: the letter -->
+  <section class="slide s3 after" role="group" aria-roledescription="slide" aria-label="Slide 3 of 3">
+    <div class="confetti" data-confetti="22"></div>
+    <button type="button" class="cake-btn side l rise" style="--d:0.3s" data-cake="#b79cf5,#f2cf7e,#e08fe0" data-burst="1" aria-label="Small cake. Tap for confetti."></button>
+    <button type="button" class="cake-btn side r rise" style="--d:0.5s" data-cake="#8f5cf0,#e08fe0,#b79cf5" data-burst="1" aria-label="Small cake. Tap for confetti."></button>
+    <div class="wrap">
+      <div class="sheet">
+        <div class="shadow">
+          <div class="paper" id="paper">
+            <!-- EDIT YOUR LETTER HERE: change the text between the tags -->
+            <div class="msg" id="msg" role="textbox" aria-multiline="true" aria-label="Your letter" contenteditable="true" spellcheck="false" data-placeholder="write something here">HEY MICS!
+
+I just wanna say, happy birthday po! I hope you have a great day and never stop smiling, because it really suits you :&gt;
+
+No matter where life takes us, I genuinely hope it brings you happiness and all the good things you deserve. I'm grateful that I got to know you and share a part of my life with you. Even if things are different now, I'll always be glad that our paths crossed :)
+
+Please take care of yourself always, okay? I hope life is kind to you, even in the moments I won't be there to witness, i'll always be proud of you. Happy birthday ulit po. You deserve to be happy, always.
+
+(P.S I will most likely not come to your birthday celebration, its probably for the best of us.)</div>
+            <!-- EDIT YOUR SIGN-OFF HERE -->
+            <div class="signoff" id="signoff" role="textbox" aria-label="Your sign-off" contenteditable="true" spellcheck="false" data-placeholder="love, you">Love, Chester.</div>
+          </div>
+        </div>
+        <span class="tape t1" aria-hidden="true"></span>
+        <span class="tape t2" aria-hidden="true"></span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<nav class="nav" aria-label="Slide controls">
+  <button type="button" class="arrow" id="prev" aria-label="Previous slide">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+  </button>
+  <div class="dots" aria-hidden="true"><i class="on"></i><i></i><i></i></div>
+  <button type="button" class="next" id="next">
+    <span id="nextLabel">Next</span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+  </button>
+</nav>
+
+<canvas id="burst" aria-hidden="true"></canvas>
+
+<script>
+(function () {
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var COLORS = ['#e08fe0', '#f2cf7e', '#b79cf5', '#f4ecff', '#8f5cf0', '#ff9ed8'];
+
+  /* Cakes */
+  function cake(a, b, c, sixteen) {
+    var s = '<svg viewBox="0 0 320 360" aria-hidden="true" focusable="false">';
+    s += '<ellipse cx="160" cy="334" rx="146" ry="18" fill="#d9c8ff" stroke="#12062c" stroke-width="5"/>';
+    s += '<rect x="40" y="232" width="240" height="98" rx="18" fill="' + a + '" stroke="#12062c" stroke-width="5"/>';
+    s += '<rect x="46" y="276" width="228" height="14" fill="#f4ecff" opacity="0.4"/>';
+    s += '<rect x="70" y="162" width="180" height="76" rx="16" fill="' + b + '" stroke="#12062c" stroke-width="5"/>';
+    s += '<rect x="100" y="102" width="120" height="66" rx="14" fill="' + c + '" stroke="#12062c" stroke-width="5"/>';
+    s += '<path d="M92 112 H228 V128 q-8.5 20 -17 0 q-8.5 20 -17 0 q-8.5 20 -17 0 q-8.5 20 -17 0 q-8.5 20 -17 0 q-8.5 20 -17 0 q-8.5 20 -17 0 q-8.5 20 -17 0 z" fill="#f4ecff" stroke="#12062c" stroke-width="5" stroke-linejoin="round"/>';
+    if (sixteen) {
+      s += '<rect x="108.5" y="72" width="11" height="34" rx="3" fill="#f4ecff" stroke="#12062c" stroke-width="4"/>';
+      s += '<rect x="200.5" y="72" width="11" height="34" rx="3" fill="#f4ecff" stroke="#12062c" stroke-width="4"/>';
+      s += '<rect x="134" y="42" width="52" height="64" rx="9" fill="#f2cf7e" stroke="#12062c" stroke-width="4"/>';
+      s += '<text x="160" y="90" text-anchor="middle" font-size="40" font-weight="900" font-style="italic" fill="#12062c" font-family="Fraunces, Georgia, serif">16</text>';
+      s += '<g><ellipse class="flame" cx="114" cy="58" rx="7" ry="11"/><ellipse class="flame" cx="160" cy="27" rx="10" ry="15"/><ellipse class="flame" cx="206" cy="58" rx="7" ry="11"/></g>';
+      s += '<g class="smoke"><circle cx="114" cy="54" r="7"/><circle cx="160" cy="24" r="7"/><circle cx="206" cy="54" r="7"/></g>';
+      s += '<path class="heart" d="M206 44 C191 34 194 20 202 20 C205 20 206 23 206 24 C206 23 207 20 210 20 C218 20 221 34 206 44 Z" fill="#ff6fb5" stroke="#12062c" stroke-width="3" stroke-linejoin="round"/>';
+    } else {
+      s += '<rect x="128" y="62" width="11" height="44" rx="3" fill="#f4ecff" stroke="#12062c" stroke-width="4"/>';
+      s += '<rect x="154.5" y="62" width="11" height="44" rx="3" fill="#f4ecff" stroke="#12062c" stroke-width="4"/>';
+      s += '<rect x="181" y="62" width="11" height="44" rx="3" fill="#f4ecff" stroke="#12062c" stroke-width="4"/>';
+      s += '<g><ellipse class="flame" cx="133.5" cy="48" rx="8" ry="13"/><ellipse class="flame" cx="160" cy="48" rx="8" ry="13"/><ellipse class="flame" cx="186.5" cy="48" rx="8" ry="13"/></g>';
+      s += '<g class="smoke"><circle cx="133.5" cy="44" r="7"/><circle cx="160" cy="44" r="7"/><circle cx="186.5" cy="44" r="7"/></g>';
+    }
+    s += '<rect x="64" y="252" width="14" height="5" rx="2" fill="#f2cf7e" transform="rotate(30 71 254)"/>';
+    s += '<rect x="120" y="300" width="14" height="5" rx="2" fill="#f4ecff" transform="rotate(-25 127 302)"/>';
+    s += '<rect x="196" y="250" width="14" height="5" rx="2" fill="#12062c" opacity="0.45" transform="rotate(50 203 252)"/>';
+    s += '<rect x="236" y="302" width="14" height="5" rx="2" fill="#f2cf7e" transform="rotate(-40 243 304)"/>';
+    s += '<rect x="96" y="196" width="14" height="5" rx="2" fill="#f4ecff" transform="rotate(20 103 198)"/>';
+    s += '<rect x="180" y="208" width="14" height="5" rx="2" fill="#f2cf7e" transform="rotate(-30 187 210)"/>';
+    return s + '</svg>';
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('[data-cake]'), function (el) {
+    var c = el.getAttribute('data-cake').split(',');
+    el.innerHTML = cake(c[0], c[1], c[2], el.hasAttribute('data-sixteen'));
+  });
+
+  /* Confetti scattered around the edges, popping in when the slide opens */
+  function scatter(host, n) {
+    for (var i = 0; i < n; i++) {
+      var p = document.createElement('span');
+      var kind = ['dot', 'bar', 'dia'][i % 3];
+      var side = Math.floor(Math.random() * 4);
+      var x, y;
+      if (side === 0) { x = Math.random() * 100; y = Math.random() * 16; }
+      else if (side === 1) { x = Math.random() * 100; y = 84 + Math.random() * 14; }
+      else if (side === 2) { x = Math.random() * 9; y = Math.random() * 100; }
+      else { x = 90 + Math.random() * 8; y = Math.random() * 100; }
+      var size = 12 + Math.random() * 18;
+      p.className = 'piece ' + kind;
+      p.style.left = x + '%';
+      p.style.top = y + '%';
+      p.style.width = (kind === 'bar' ? size * 0.55 : size) + 'px';
+      p.style.height = (kind === 'bar' ? size * 1.8 : size) + 'px';
+      p.style.background = COLORS[(Math.random() * COLORS.length) | 0];
+      p.style.setProperty('--r', ((Math.random() * 360) | 0) + 'deg');
+      p.style.setProperty('--d', (0.45 + i * 0.035).toFixed(2) + 's');
+      host.appendChild(p);
+    }
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('[data-confetti]'), function (h) {
+    scatter(h, parseInt(h.getAttribute('data-confetti'), 10));
+  });
+
+  /* Confetti burst */
+  var canvas = document.getElementById('burst');
+  var ctx = canvas.getContext('2d');
+  var parts = [], running = false;
+  function size() {
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = innerWidth * dpr; canvas.height = innerHeight * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener('resize', size); size();
+  function burst(x, y, n) {
+    n = reduce ? 24 : (n || 90);
+    for (var i = 0; i < n; i++) {
+      var a = -Math.PI / 2 + (Math.random() - 0.5) * 2.2;
+      var sp = 5 + Math.random() * 10;
+      parts.push({
+        x: x, y: y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+        w: 6 + Math.random() * 7, h: 4 + Math.random() * 6,
+        rot: Math.random() * 6.28, vr: (Math.random() - 0.5) * 0.3,
+        c: COLORS[(Math.random() * COLORS.length) | 0], life: 0
+      });
+    }
+    if (!running) { running = true; requestAnimationFrame(tick); }
+  }
+  function tick() {
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    parts = parts.filter(function (p) { return p.y < innerHeight + 30 && p.life < 240; });
+    parts.forEach(function (p) {
+      p.life++; p.vy += 0.3; p.vx *= 0.985;
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    });
+    if (parts.length) requestAnimationFrame(tick); else { running = false; ctx.clearRect(0, 0, innerWidth, innerHeight); }
+  }
+  function burstFrom(el, n) {
+    var r = el.getBoundingClientRect();
+    burst(r.left + r.width / 2, r.top + r.height * 0.3, n);
+  }
+
+  /* Tap a cake for confetti (slides 1 and 3) */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-burst]'), function (el) {
+    el.addEventListener('click', function () { burstFrom(el, 80); });
+  });
+
+  /* Slide 2: blow out the candles */
+  var blows = Array.prototype.slice.call(document.querySelectorAll('.blow'));
+  var wishLine = document.getElementById('wishLine');
+  blows.forEach(function (b) {
+    b.addEventListener('click', function () {
+      var out = !b.classList.contains('out');
+      b.classList.toggle('out', out);
+      b.setAttribute('aria-pressed', String(out));
+      b.setAttribute('aria-label', (out ? 'Candles blown out. Tap to relight.' : 'Tap to blow out the candles.'));
+      if (out) burstFrom(b, 60);
+      var all = blows.every(function (x) { return x.classList.contains('out'); });
+      wishLine.textContent = all ? 'wish made. now eat the cake.' : 'tap the cakes to blow them out';
+      if (all) burst(innerWidth / 2, innerHeight * 0.7, 140);
+    });
+  });
+
+  /* The letter: the text comes from index.html. You can still click and type on the page, but the file is what's shown every time it opens. */
+  var msg = document.getElementById('msg');
+  var signoff = document.getElementById('signoff');
+  [msg, signoff].forEach(function (el) {
+    el.addEventListener('input', function () { if (!el.textContent) el.innerHTML = ''; });
+    el.addEventListener('paste', function (e) {
+      e.preventDefault();
+      var t = (e.clipboardData || window.clipboardData).getData('text');
+      if (el === signoff) t = t.replace(/\s*\n+\s*/g, ' ');
+      document.execCommand('insertText', false, t);
+    });
+  });
+  signoff.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); signoff.blur(); } });
+
+  /* Torn bottom edge on the paper */
+  var paper = document.getElementById('paper');
+  var seed = 7, n = 34, pts = ['0 0', '100% 0', '100% 99.2%'];
+  function rnd() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+  for (var i = n; i >= 0; i--) pts.push(((i / n) * 100).toFixed(2) + '% ' + (99.4 - rnd() * 1.4).toFixed(2) + '%');
+  pts.push('0 99.2%');
+  paper.style.clipPath = 'polygon(' + pts.join(',') + ')';
+
+  /* Navigation: only the Next button, the arrow buttons and the arrow keys move the slides */
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var dots = Array.prototype.slice.call(document.querySelectorAll('.dots i'));
+  var prev = document.getElementById('prev');
+  var next = document.getElementById('next');
+  var nextLabel = document.getElementById('nextLabel');
+  var cur = 0;
+
+  function render() {
+    slides.forEach(function (s, i) {
+      s.classList.toggle('on', i === cur);
+      s.classList.toggle('before', i < cur);
+      s.classList.toggle('after', i > cur);
+      s.setAttribute('aria-hidden', String(i !== cur));
+    });
+    dots.forEach(function (d, i) { d.classList.toggle('on', i === cur); });
+    prev.disabled = cur === 0;
+    nextLabel.textContent = cur === slides.length - 1 ? 'Done' : 'Next';
+    if (!reduce) setTimeout(function () { burst(innerWidth / 2, innerHeight * 0.85, 70); }, 450);
+  }
+  function go(n) {
+    if (n < 0 || n > slides.length - 1 || n === cur) return;
+    cur = n;
+    render();
+  }
+  prev.addEventListener('click', function () { go(cur - 1); });
+  next.addEventListener('click', function () {
+    if (cur === slides.length - 1) { burst(innerWidth / 2, innerHeight * 0.8, 160); return; }
+    go(cur + 1);
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.target && e.target.isContentEditable) return;
+    if (e.key === 'ArrowRight') { go(cur + 1); }
+    else if (e.key === 'ArrowLeft') { go(cur - 1); }
+  });
+  render();
+})();
+</script>
+</body>
+</html>
