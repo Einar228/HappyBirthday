@@ -121,6 +121,16 @@ body::after {
 .cake-btn.out .smoke circle:nth-child(3) { animation-delay: 0.24s; }
 @keyframes wisp { from { opacity: 0.85; translate: 0 0; scale: 0.5; } to { opacity: 0; translate: 0 -64px; scale: 1.9; } }
 
+/* Lilies */
+.lily { position: absolute; bottom: 0; z-index: 0; pointer-events: none; width: clamp(90px, min(14vw, 24vh), 220px); }
+.lily svg { display: block; width: 100%; height: auto; overflow: visible; transform-origin: 50% 100%; animation: sway 6s ease-in-out infinite alternate; filter: drop-shadow(0 12px 18px rgba(8, 2, 24, 0.45)); }
+.lily.edge-l { left: 0; }
+.lily.edge-r { right: 0; }
+.lily.in-l { left: 8vw; width: clamp(70px, min(10vw, 17vh), 160px); }
+.lily.in-r { right: 8vw; width: clamp(70px, min(10vw, 17vh), 160px); }
+.lily.in-l svg, .lily.in-r svg { animation-duration: 7.5s; animation-direction: alternate-reverse; }
+@keyframes sway { from { rotate: -2.5deg; } to { rotate: 2.5deg; } }
+
 /* Slide 1 */
 .s1 .wrap {
   max-width: 1400px;
@@ -184,8 +194,8 @@ body::after {
 .tape.t1 { top: -14px; left: 8%; transform: rotate(-8deg); background: radial-gradient(circle, rgba(255, 255, 255, 0.6) 2px, transparent 2.6px) 0 0 / 12px 12px, rgba(183, 156, 245, 0.85); }
 .tape.t2 { top: -12px; right: 8%; transform: rotate(6deg); background: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.42) 0 5px, transparent 5px 10px), rgba(224, 143, 224, 0.85); }
 .side { display: none; position: absolute; bottom: calc(var(--bar) + 3vh); width: clamp(120px, 13vw, 190px); z-index: 1; }
-.side.l { left: 5vw; }
-.side.r { right: 5vw; }
+.side.l { left: 14vw; }
+.side.r { right: 14vw; }
 
 /* Navigation */
 .nav {
@@ -244,7 +254,7 @@ canvas#burst { position: fixed; inset: 0; width: 100%; height: 100%; pointer-eve
   .slide, .slide.on { transition: opacity 0.2s; }
   .slide.before, .slide.after { transform: none; }
   .piece, .rise, .sheet { opacity: 1; scale: 1; translate: none; animation: none !important; }
-  .flame, .heart { animation: none; }
+  .flame, .heart, .lily svg { animation: none; }
 }
 </style>
 </head>
@@ -253,6 +263,8 @@ canvas#burst { position: fixed; inset: 0; width: 100%; height: 100%; pointer-eve
   <!-- Slide 1 -->
   <section class="slide s1 on" role="group" aria-roledescription="slide" aria-label="Slide 1 of 3">
     <div class="confetti" data-confetti="26"></div>
+    <div class="lily rise edge-r" data-lily="#b57cf0,#9a5be0" style="--d:0.4s" aria-hidden="true"></div>
+    <div class="lily rise in-r" data-lily="#c9a2f7,#a56fe8" style="--d:0.6s" aria-hidden="true"></div>
     <div class="wrap">
       <div class="col">
         <p class="eyebrow">A LITTLE SOMETHING FOR YOU</p>
@@ -266,6 +278,8 @@ canvas#burst { position: fixed; inset: 0; width: 100%; height: 100%; pointer-eve
   <!-- Slide 2 -->
   <section class="slide s2 after" role="group" aria-roledescription="slide" aria-label="Slide 2 of 3">
     <div class="confetti" data-confetti="26"></div>
+    <div class="lily rise edge-l" data-lily="#c9a2f7,#a56fe8" style="--d:0.3s" aria-hidden="true"></div>
+    <div class="lily rise edge-r" data-lily="#b57cf0,#9a5be0" style="--d:0.9s" aria-hidden="true"></div>
     <div class="wrap">
       <h2 class="wish">make a wish</h2>
       <p class="wish-line" id="wishLine">tap the cakes to blow them out</p>
@@ -282,6 +296,8 @@ canvas#burst { position: fixed; inset: 0; width: 100%; height: 100%; pointer-eve
   <!-- Slide 3: the letter -->
   <section class="slide s3 after" role="group" aria-roledescription="slide" aria-label="Slide 3 of 3">
     <div class="confetti" data-confetti="22"></div>
+    <div class="lily rise edge-l" data-lily="#b57cf0,#9a5be0" style="--d:0.35s" aria-hidden="true"></div>
+    <div class="lily rise edge-r" data-lily="#c9a2f7,#a56fe8" style="--d:0.55s" aria-hidden="true"></div>
     <button type="button" class="cake-btn side l rise" style="--d:0.3s" data-cake="#b79cf5,#f2cf7e,#e08fe0" data-burst="1" aria-label="Small cake. Tap for confetti."></button>
     <button type="button" class="cake-btn side r rise" style="--d:0.5s" data-cake="#8f5cf0,#e08fe0,#b79cf5" data-burst="1" aria-label="Small cake. Tap for confetti."></button>
     <div class="wrap">
@@ -295,9 +311,7 @@ I just wanna say, happy birthday po! I hope you have a great day and never stop 
 
 No matter where life takes us, I genuinely hope it brings you happiness and all the good things you deserve. I'm grateful that I got to know you and share a part of my life with you. Even if things are different now, I'll always be glad that our paths crossed :)
 
-Please take care of yourself always, okay? I hope life is kind to you, even in the moments I won't be there to witness, i'll always be proud of you. Happy birthday ulit po. You deserve to be happy, always.
-
-(P.S I will most likely not come to your birthday celebration, its probably for the best of us.)</div>
+Please take care of yourself always, okay? I hope life is kind to you, even in the moments I won't be there to witness, i'll always be proud of you. Happy birthday ulit po. You deserve to be happy, always.</div>
             <!-- EDIT YOUR SIGN-OFF HERE -->
             <div class="signoff" id="signoff" role="textbox" aria-label="Your sign-off" contenteditable="true" spellcheck="false" data-placeholder="love, you">Love, Chester.</div>
           </div>
@@ -362,6 +376,41 @@ Please take care of yourself always, okay? I hope life is kind to you, even in t
   Array.prototype.forEach.call(document.querySelectorAll('[data-cake]'), function (el) {
     var c = el.getAttribute('data-cake').split(',');
     el.innerHTML = cake(c[0], c[1], c[2], el.hasAttribute('data-sixteen'));
+  });
+
+
+  /* Purple lilies */
+  function petal(angle, fill) {
+    var s = '<g transform="translate(110 92) rotate(' + angle + ')">';
+    s += '<path d="M0 0 C 20 -20 26 -52 0 -84 C -26 -52 -20 -20 0 0 Z" fill="' + fill + '" stroke="#12062c" stroke-width="4" stroke-linejoin="round"/>';
+    s += '<path d="M0 -6 L0 -68" stroke="#6b2fc9" stroke-width="3" stroke-linecap="round" opacity="0.55"/>';
+    s += '<g fill="#4a1fa0" opacity="0.8"><circle cx="-6" cy="-28" r="2"/><circle cx="6" cy="-34" r="2"/><circle cx="-3" cy="-46" r="1.8"/><circle cx="5" cy="-52" r="1.6"/><circle cx="-7" cy="-17" r="1.8"/></g>';
+    return s + '</g>';
+  }
+  function lily(c1, c2, flip) {
+    var s = '<svg viewBox="0 0 220 380" aria-hidden="true" focusable="false">';
+    if (flip) s += '<g transform="translate(220 0) scale(-1 1)">';
+    s += '<path d="M110 100 C 104 170 118 250 108 380" fill="none" stroke="#12062c" stroke-width="13" stroke-linecap="round"/>';
+    s += '<path d="M112 196 C 130 186 150 176 160 152" fill="none" stroke="#12062c" stroke-width="10" stroke-linecap="round"/>';
+    s += '<path d="M110 100 C 104 170 118 250 108 380" fill="none" stroke="#6aa886" stroke-width="6" stroke-linecap="round"/>';
+    s += '<path d="M112 196 C 130 186 150 176 160 152" fill="none" stroke="#6aa886" stroke-width="4" stroke-linecap="round"/>';
+    s += '<path d="M108 300 C 70 280 40 290 20 246 C 60 248 92 262 108 300 Z" fill="#5f9b7a" stroke="#12062c" stroke-width="4" stroke-linejoin="round"/>';
+    s += '<path d="M110 336 C 150 310 182 318 202 274 C 162 278 132 292 110 336 Z" fill="#5f9b7a" stroke="#12062c" stroke-width="4" stroke-linejoin="round"/>';
+    s += '<path d="M160 154 C 146 132 148 104 160 84 C 172 104 174 132 160 154 Z" fill="' + c2 + '" stroke="#12062c" stroke-width="4" stroke-linejoin="round"/>';
+    s += '<path d="M160 146 L160 98" stroke="#6b2fc9" stroke-width="3" stroke-linecap="round" opacity="0.55"/>';
+    s += petal(0, c2) + petal(120, c2) + petal(240, c2) + petal(60, c1) + petal(180, c1) + petal(300, c1);
+    for (var k = 0; k < 6; k++) {
+      var a = (20 + k * 60) * Math.PI / 180, x = 110 + Math.sin(a) * 36, y = 92 - Math.cos(a) * 36;
+      s += '<line x1="110" y1="92" x2="' + x.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="#12062c" stroke-width="3" stroke-linecap="round"/>';
+      s += '<ellipse cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" rx="4.5" ry="7" transform="rotate(' + (20 + k * 60) + ' ' + x.toFixed(1) + ' ' + y.toFixed(1) + ')" fill="#e0489a" stroke="#12062c" stroke-width="2.5"/>';
+    }
+    s += '<circle cx="110" cy="92" r="9" fill="#f2cf7e" stroke="#12062c" stroke-width="3"/>';
+    if (flip) s += '</g>';
+    return s + '</svg>';
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('[data-lily]'), function (el) {
+    var c = el.getAttribute('data-lily').split(',');
+    el.innerHTML = lily(c[0], c[1], el.classList.contains('edge-r') || el.classList.contains('in-l'));
   });
 
   /* Confetti scattered around the edges, popping in when the slide opens */
